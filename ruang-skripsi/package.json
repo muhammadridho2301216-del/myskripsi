@@ -9,11 +9,13 @@
     "preview": "nuxt preview",
     "test:foundation": "tsx --test tests/foundation.test.ts",
     "test:writing": "tsx --test tests/writing.test.ts tests/revision.test.ts",
+    "test:export": "tsx --test tests/export.test.ts",
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@clerk/nuxt": "^3.1.9",
     "appwrite": "^28.1.0",
+    "docx": "^9.8.1",
     "gsap": "^3.13.0",
     "lucide-vue-next": "^0.468.0",
     "node-appwrite": "^29.0.0",

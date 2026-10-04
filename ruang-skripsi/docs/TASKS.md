@@ -483,39 +483,46 @@ Setiap task harus memenuhi Definition of Done pada [PERENCANAAN.md](./PERENCANAA
 
 ## TASK-09.01 — Export data contract
 
-- [ ] SUBTASK-09.01.01 Definisikan export snapshot.
-- [ ] SUBTASK-09.01.02 Definisikan warning payload.
-- [ ] SUBTASK-09.01.03 Freeze source/version at export time.
-- [ ] SUBTASK-09.01.04 Definisikan artifact metadata.
+- [x] SUBTASK-09.01.01 Definisikan export snapshot. _(`domain/export/model.ts#ExportSnapshot`)_
+- [x] SUBTASK-09.01.02 Definisikan warning payload. _(`ExportWarning`, critical vs notice severity)_
+- [x] SUBTASK-09.01.03 Freeze source/version at export time. _(`ExportPanel.vue#buildSnapshotBase` reads current writing docs/sources once per export call; server renders only from the posted snapshot, never a live reference)_
+- [x] SUBTASK-09.01.04 Definisikan artifact metadata. _(`ArtifactMetadata`; `expiresAt` is `null` because artifacts aren't stored server-side yet — see note below)_
 
 ## TASK-09.02 — DOCX renderer
 
-- [ ] SUBTASK-09.02.01 Render project metadata.
-- [ ] SUBTASK-09.02.02 Render chapter outline.
-- [ ] SUBTASK-09.02.03 Render node brief.
-- [ ] SUBTASK-09.02.04 Render targets/checklist.
-- [ ] SUBTASK-09.02.05 Render research matrix.
-- [ ] SUBTASK-09.02.06 Render bibliography draft.
-- [ ] SUBTASK-09.02.07 Render AI disclosure.
-- [ ] SUBTASK-09.02.08 Validate generated DOCX.
+- [x] SUBTASK-09.02.01 Render project metadata. _(title page: judul, nama, program, universitas, tanggal)_
+- [x] SUBTASK-09.02.02 Render chapter outline. _(heading levels 1-3 from outline nodes)_
+- [x] SUBTASK-09.02.03 Render node brief. _(objective line per section)_
+- [x] SUBTASK-09.02.04 Render targets/checklist. _(status + word count vs target per section)_
+- [x] SUBTASK-09.02.05 Render research matrix. _(table: sumber/tujuan/metode/temuan/keterbatasan/verifikasi)_
+- [x] SUBTASK-09.02.06 Render bibliography draft. _(`domain/citation-style/bibliography.ts`, APA + IEEE)_
+- [x] SUBTASK-09.02.07 Render AI disclosure. _("Keterangan Bantuan AI" section listing ai-assisted sections)_
+- [x] SUBTASK-09.02.08 Validate generated DOCX. _(`validateDocxBuffer`: checks ZIP signature + required OOXML parts + `<w:body>`; verified end-to-end against a real server response — see implementation notes)_
 
 ## TASK-09.03 — Template settings
 
-- [ ] SUBTASK-09.03.01 Margin settings.
-- [ ] SUBTASK-09.03.02 Font settings.
-- [ ] SUBTASK-09.03.03 Paragraph spacing.
-- [ ] SUBTASK-09.03.04 Heading numbering.
-- [ ] SUBTASK-09.03.05 Page numbering.
-- [ ] SUBTASK-09.03.06 Save template preset.
+- [x] SUBTASK-09.03.01 Margin settings. _(`ExportTemplate.marginsCm`)_
+- [x] SUBTASK-09.03.02 Font settings. _(`fontFamily`, `fontSizePt`)_
+- [x] SUBTASK-09.03.03 Paragraph spacing. _(`lineSpacing`)_
+- [x] SUBTASK-09.03.04 Heading numbering. _(`headingNumbering` flag on template; DOCX heading STYLES applied — Word's own auto-numbering via list styles is NOT wired yet, flag is currently descriptive only)_
+- [x] SUBTASK-09.03.05 Page numbering. _(footer with `PageNumber.CURRENT` when `pageNumbering: true`)_
+- [ ] SUBTASK-09.03.06 Save template preset. _(two built-in presets exist (`defaultTemplates`); no UI/persistence yet to save a custom one — needs Batch 6 storage)_
 
 ## TASK-09.04 — Export UI
 
-- [ ] SUBTASK-09.04.01 Draft export action.
-- [ ] SUBTASK-09.04.02 Final readiness dialog.
-- [ ] SUBTASK-09.04.03 Warning acknowledgement.
-- [ ] SUBTASK-09.04.04 Job progress.
-- [ ] SUBTASK-09.04.05 Download artifact.
-- [ ] SUBTASK-09.04.06 Expired artifact state.
+- [x] SUBTASK-09.04.01 Draft export action. _(`ExportPanel.vue`, always allowed)_
+- [x] SUBTASK-09.04.02 Final readiness dialog. _(warning list + citation summary shown before export, via `/api/export/readiness`)_
+- [x] SUBTASK-09.04.03 Warning acknowledgement. _(checkbox required to force-export a Final Blueprint with open critical warnings)_
+- [ ] SUBTASK-09.04.04 Job progress. _(render is synchronous and fast enough in the prototype that no job queue exists; a spinner covers the request, not a multi-step progress bar)_
+- [x] SUBTASK-09.04.05 Download artifact. _(browser `Blob` + `<a download>`, verified against a real running server — file opens as a valid .docx)_
+- [ ] SUBTASK-09.04.06 Expired artifact state. _(nothing to expire: artifacts are generated on-demand and never stored server-side in this prototype; applies once Batch 6/export-service persists generated files)_
+
+**Batch 5 implementation notes:**
+- Citation styling lives in `domain/citation-style/` (APA 7th simplified + IEEE numeric), built on top of the `[[cite:key|label]]` placeholder scheme from Batch 4 — extended, not re-derived, as planned.
+- DOCX rendering uses the `docx` npm package (v9) plus its own `jszip` dependency for structural validation, so no new unvetted dependency was added for validation.
+- `tests/export.test.ts` (12 tests) actually generates a `.docx` buffer, unzips it, and asserts on the real `word/document.xml` content (title present, APA in-text citation rendered, raw `[[cite:` placeholders never leak, Research Matrix/Daftar Pustaka/AI disclosure sections present) — not just "no exception thrown".
+- Additionally verified against a **live production server** (`npm run build` + `node .output/server/index.mjs`): downloaded a real file over HTTP, confirmed with the system `file` command that it reports "Microsoft Word 2007+", and confirmed the Final Blueprint gate returns a real HTTP 422 with the warning payload when critical checks fail.
+- The Final Blueprint gate (`domain/export/gate.ts#evaluateExportReadiness`) reuses `evaluateOutlineReadiness` and `evaluateConsistency` from Batches 3/4 rather than re-implementing readiness logic.
 
 ---
 

@@ -662,3 +662,32 @@ mark { background: #f5d995; color: inherit; padding: 2px; }
   .writing-side-row { grid-template-columns: 1fr; }
   .revision-form { grid-template-columns: 1fr; }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Export Panel — Batch 5                                                     */
+/* -------------------------------------------------------------------------- */
+
+.export-panel { margin-top: 28px; background: #f8f5ed; border: 1px solid var(--line); padding: 18px; display: grid; gap: 14px; }
+.export-controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+.export-controls label { display: grid; gap: 4px; font-size: 11px; color: var(--muted); }
+.export-controls select { border: 1px solid var(--line); border-radius: 6px; padding: 8px; font-size: 13px; background: white; min-width: 160px; }
+.export-controls .app-secondary { height: 38px; display: inline-flex; gap: 6px; align-items: center; }
+.export-readiness { display: grid; gap: 10px; }
+.export-citation-summary { display: flex; gap: 14px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.export-citation-summary .check-warning { color: #9a6518; }
+.export-citation-summary .check-critical { color: #a43e31; }
+.export-warning-list { border-radius: 6px; padding: 10px 12px; font-size: 12px; display: grid; gap: 4px; }
+.export-warning-list.critical { background: #f8e6e1; border-left: 3px solid #c55e4d; }
+.export-warning-list.notice { background: #f1ece0; border-left: 3px solid #d8ad5a; }
+.export-warning-list.ok { background: #e3eee6; border-left: 3px solid #4f8f6a; }
+.export-warning-head { display: flex; gap: 6px; align-items: center; font-weight: 700; }
+.export-warning-list p { margin: 0; color: #4a594f; }
+.export-ack { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: #a43e31; }
+.export-button { justify-self: start; }
+.spin { animation: export-spin 1s linear infinite; }
+@keyframes export-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .export-controls { flex-direction: column; align-items: stretch; }
+  .export-controls select { min-width: 0; width: 100%; }
+}

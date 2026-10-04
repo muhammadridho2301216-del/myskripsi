@@ -6,6 +6,7 @@ import {
 import WritingWorkspace from '../components/WritingWorkspace.vue'
 import RevisionBoard from '../components/RevisionBoard.vue'
 import BimbinganJournal from '../components/BimbinganJournal.vue'
+import ExportPanel from '../components/ExportPanel.vue'
 
 useHead({ title: 'Workspace — Ruang Skripsi', bodyAttrs: { class: 'workspace-body' } })
 const router = useRouter()
@@ -681,6 +682,15 @@ function logout() {
               <button @click="refreshReadiness">Periksa ulang kerangka</button>
             </aside>
           </div>
+          <ExportPanel
+            :outline-nodes="outlineNodes"
+            :sources="savedSources"
+            :thesis-title="profile.topic"
+            :research-type="selectedResearchType"
+            :profile="profile"
+            :readiness="readiness"
+            :consistency="consistency"
+          />
         </section>
 
         <section v-else-if="active === 'ai'" class="app-view ai-view">
