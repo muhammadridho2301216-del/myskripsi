@@ -1084,11 +1084,37 @@ Jangan memulai full sandbox implementation sebelum entitlement, queue, dan threa
 
 # EPIC-20 — Appwrite Platform Integration
 
-- [ ] Configure Sites, Functions, Database, Storage, dan Messaging.
-- [ ] Web/Server SDK clients dan environment validation.
-- [ ] Clerk webhook dan profile bootstrap by `clerkUserId`.
-- [ ] Ownership filter pada seluruh read/write.
-- [ ] Staging/production Appwrite projects.
+- [~] Configure Sites, Functions, Database, Storage, dan Messaging. _(Database schema designed and self-validated in `domain/repository/appwriteSchema.ts` + `scripts/setupAppwriteSchema.ts`. Sites, Functions, Storage, Messaging NOT configured — out of scope for Batch 6, no credentials available to configure them anyway.)_
+- [x] Web/Server SDK clients dan environment validation. _(`domain/repository/appwriteClient.ts` — browser SDK via `appwrite` package; `scripts/setupAppwriteSchema.ts` — server SDK via `node-appwrite`. Both throw a clear `AppwriteNotConfiguredError`/exit code instead of silently no-op'ing when env vars are missing.)_
+- [ ] Clerk webhook dan profile bootstrap by `clerkUserId`. _(Blocked on EPIC-19/Clerk, which is not installed yet. Current bridge is an Appwrite anonymous session — see honesty note below.)_
+- [x] Ownership filter pada seluruh read/write. _(Every table has `rowSecurity: true`; every write grants `Permission.read/update/delete(Role.user(ownerId))` only; every read query filters `Query.equal('ownerId', ownerId)`. Enforced by Appwrite itself, not just application code — see `domain/repository/appwrite.ts`.)_
+- [ ] Staging/production Appwrite projects. _(No Appwrite project of any kind exists yet — nothing to point staging/production at.)_
+
+**Batch 6 honesty note — read before relying on this:**
+
+Everything above marked `[x]` has been reviewed against the documented
+node-appwrite v29 / appwrite v28 SDK API surface and is unit-tested where
+unit-testing is possible without a live project
+(`tests/appwriteMapping.test.ts`, `domain/repository/appwriteSchema.ts`'s
+`validateSchema`). **None of it has been executed against a real Appwrite
+instance** — this development environment has no Appwrite project, API key,
+or project ID available, and none were provided. Specifically unverified:
+
+- Whether `createTable`/`createStringColumn`/etc. in
+  `scripts/setupAppwriteSchema.ts` actually produce the schema described in
+  `appwriteSchema.ts` when run against a real project.
+- Whether `TablesDB.listRows`/`createRow`/`updateRow`/`deleteRow` in
+  `domain/repository/appwrite.ts` behave as the type signatures suggest at
+  runtime (row security, permission scoping, query filtering).
+- Whether the anonymous-session bridge in `appwriteClient.ts` actually
+  persists a stable `ownerId` across page reloads in a real browser.
+
+Treat the Appwrite adapter as **written and internally consistent, not
+integration-tested**. Before using it for real user data: run
+`scripts/setupAppwriteSchema.ts` against a staging project, manually drive
+the writing/revision/bimbingan UI with `createRepositories({ backend:
+'appwrite', databaseId })` wired in, and confirm rows appear correctly
+scoped per anonymous session in the Appwrite console.
 
 # EPIC-21 — Offers, Promotions & Notifications
 
