@@ -65,6 +65,33 @@ Untuk production, API key pengguna tidak boleh disimpan di localStorage. Gunakan
 
 Appwrite Functions hanya menjadi control plane. Job terminal/build dikirim ke queue dan dikerjakan oleh VPS worker terpisah di dalam container/microVM ephemeral. Browser tidak pernah memperoleh SSH atau akses shell host.
 
+### Appwrite persistence (Batch 6)
+
+Writing documents, revisions, dan jurnal bimbingan dapat disimpan ke Appwrite TablesDB alih-alih localStorage.
+
+**Status kejujuran:** adapter dan skema di bawah ini ditulis dan diuji unit (mapping JSON <-> domain object, validasi skema) tanpa membutuhkan Appwrite, tetapi **belum pernah dijalankan terhadap project Appwrite sungguhan** karena tidak ada kredensial yang tersedia saat implementasi. Jalankan skrip setup di staging dan verifikasi manual sebelum dipakai produksi.
+
+1. Buat project Appwrite, lalu isi environment:
+
+```bash
+NUXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+NUXT_PUBLIC_APPWRITE_PROJECT_ID=...
+NUXT_APPWRITE_API_KEY=...
+NUXT_APPWRITE_DATABASE_ID=ruang_skripsi
+```
+
+2. Jalankan skrip setup skema sekali (lihat `scripts/setupAppwriteSchema.ts` dan `domain/repository/appwriteSchema.ts` untuk detail tabel):
+
+```bash
+npx tsx scripts/setupAppwriteSchema.ts
+```
+
+3. Periksa Appwrite console: pastikan status setiap attribute/index sudah "available", bukan "processing".
+
+**Batasan identitas saat ini:** Clerk (EPIC-19) belum terpasang, sehingga adapter Appwrite memakai *anonymous session* bawaan Appwrite sebagai `ownerId` sementara (lihat `domain/repository/appwriteClient.ts`). Sesi ini hanya hidup di cookie browser — hilang jika cookie dibersihkan atau pindah perangkat. Jangan andalkan ini untuk data yang harus bertahan lintas device sebelum Clerk terpasang.
+
+Untuk mengaktifkan adapter Appwrite di UI, ganti pemanggilan `createRepositories()` menjadi `createRepositories({ backend: 'auto', databaseId })` (lihat `composables/useRepositories.ts`) setelah langkah di atas selesai dan diverifikasi manual.
+
 ### Model registry
 
 Endpoint katalog internal:
