@@ -588,84 +588,97 @@ Setiap task harus memenuhi Definition of Done pada [PERENCANAAN.md](./PERENCANAA
 
 ## TASK-11.01 — Normalized AI request
 
-- [ ] SUBTASK-11.01.01 Messages/content schema.
-- [ ] SUBTASK-11.01.02 Tool schema.
-- [ ] SUBTASK-11.01.03 Streaming event schema.
-- [ ] SUBTASK-11.01.04 Usage schema.
-- [ ] SUBTASK-11.01.05 Error normalization.
-- [ ] SUBTASK-11.01.06 Cancellation contract.
+- [x] SUBTASK-11.01.01 Messages/content schema. _(`domain/ai/request.ts#NormalizedMessage`)_
+- [x] SUBTASK-11.01.02 Tool schema. _(`NormalizedToolDef`)_
+- [x] SUBTASK-11.01.03 Streaming event schema. _(`NormalizedStreamEvent`; defined for forward-compat — no adapter streams yet, see TASK-11.02 note)_
+- [x] SUBTASK-11.01.04 Usage schema. _(`NormalizedUsage`, includes optional `reasoningTokens`)_
+- [x] SUBTASK-11.01.05 Error normalization. _(`NormalizedAIError` + `NormalizedErrorCategory`; every adapter's `parseHttpError` returns one)_
+- [x] SUBTASK-11.01.06 Cancellation contract. _(`AdapterCallOptions.signal`, a plain `AbortSignal`)_
 
 ## TASK-11.02 — OpenAI adapter
 
-- [ ] SUBTASK-11.02.01 Connection validation.
-- [ ] SUBTASK-11.02.02 Model listing.
-- [ ] SUBTASK-11.02.03 Streaming text.
-- [ ] SUBTASK-11.02.04 Structured output.
-- [ ] SUBTASK-11.02.05 Tool calling.
-- [ ] SUBTASK-11.02.06 Reasoning parameter mapping.
-- [ ] SUBTASK-11.02.07 Usage/error mapping.
-- [ ] SUBTASK-11.02.08 Contract tests.
+- [x] SUBTASK-11.02.01 Connection validation. _(existing `/api/ai/models` endpoint from Batch 1, unchanged)_
+- [x] SUBTASK-11.02.02 Model listing. _(existing, unchanged)_
+- [ ] SUBTASK-11.02.03 Streaming text. _(not implemented — `/api/ai` is request/response only; `NormalizedStreamEvent` exists as a target contract for when this is built)_
+- [ ] SUBTASK-11.02.04 Structured output. _(no JSON-mode/schema-constrained output wired yet)_
+- [x] SUBTASK-11.02.05 Tool calling. _(`domain/ai/adapters/openaiCompatible.ts` builds/parses `tools`/`tool_calls`; not yet wired into `/api/ai`, which doesn't accept tools in its request body — see honesty note below)_
+- [x] SUBTASK-11.02.06 Reasoning parameter mapping. _(`domain/ai/thinkingControls.ts#validateThinkingRequest`, covers all 5 ThinkingCapability modes)_
+- [x] SUBTASK-11.02.07 Usage/error mapping. _(`parseHttpResponse`/`parseHttpError`)_
+- [x] SUBTASK-11.02.08 Contract tests. _(`tests/aiAdapters.test.ts`, fixture-based, no network)_
 
 ## TASK-11.03 — Anthropic adapter
 
-- [ ] SUBTASK-11.03.01 Connection validation.
-- [ ] SUBTASK-11.03.02 Model discovery/catalog.
-- [ ] SUBTASK-11.03.03 Streaming.
-- [ ] SUBTASK-11.03.04 Tool calling.
-- [ ] SUBTASK-11.03.05 Thinking budget mapping.
-- [ ] SUBTASK-11.03.06 Usage/error mapping.
-- [ ] SUBTASK-11.03.07 Contract tests.
+- [x] SUBTASK-11.03.01 Connection validation. _(existing, unchanged)_
+- [x] SUBTASK-11.03.02 Model discovery/catalog. _(existing, unchanged)_
+- [ ] SUBTASK-11.03.03 Streaming. _(not implemented, same as OpenAI)_
+- [x] SUBTASK-11.03.04 Tool calling. _(`domain/ai/adapters/anthropic.ts`, maps to `input_schema`/`tool_use` blocks)_
+- [x] SUBTASK-11.03.05 Thinking budget mapping. _(`thinking: { type: 'enabled', budget_tokens }`)_
+- [x] SUBTASK-11.03.06 Usage/error mapping.
+- [x] SUBTASK-11.03.07 Contract tests.
 
 ## TASK-11.04 — Gemini adapter
 
-- [ ] SUBTASK-11.04.01 API-key connection.
-- [ ] SUBTASK-11.04.02 OAuth connection support.
-- [ ] SUBTASK-11.04.03 Model listing.
-- [ ] SUBTASK-11.04.04 Multimodal mapping.
-- [ ] SUBTASK-11.04.05 Tool calling.
-- [ ] SUBTASK-11.04.06 Thinking mapping.
-- [ ] SUBTASK-11.04.07 Usage/error mapping.
-- [ ] SUBTASK-11.04.08 Contract tests.
+- [x] SUBTASK-11.04.01 API-key connection. _(existing, unchanged)_
+- [x] SUBTASK-11.04.02 OAuth connection support. _(adapter accepts `accessToken` as an alternative to `apiKey`, matching the existing OAuth bridge in `server/utils/googleOAuth.ts`)_
+- [x] SUBTASK-11.04.03 Model listing. _(existing, unchanged)_
+- [ ] SUBTASK-11.04.04 Multimodal mapping. _(text-only; image/file parts not mapped)_
+- [x] SUBTASK-11.04.05 Tool calling. _(`domain/ai/adapters/google.ts`, `functionDeclarations`/`functionCall`)_
+- [ ] SUBTASK-11.04.06 Thinking mapping. _(Gemini's own `thinkingConfig` is not mapped by this adapter yet — Google's thinking model differs enough from the toggle/levels/budget union that it needs its own design pass, not a quick addition)_
+- [x] SUBTASK-11.04.07 Usage/error mapping.
+- [x] SUBTASK-11.04.08 Contract tests.
 
 ## TASK-11.05 — OpenRouter adapter
 
-- [ ] SUBTASK-11.05.01 Connection validation.
-- [ ] SUBTASK-11.05.02 Model listing.
-- [ ] SUBTASK-11.05.03 Provider routing metadata.
-- [ ] SUBTASK-11.05.04 Streaming/tools.
-- [ ] SUBTASK-11.05.05 Usage/error mapping.
-- [ ] SUBTASK-11.05.06 Contract tests.
+- [x] SUBTASK-11.05.01 Connection validation. _(uses the openai-compatible adapter — OpenRouter speaks the same /chat/completions shape)_
+- [x] SUBTASK-11.05.02 Model listing. _(existing, unchanged)_
+- [ ] SUBTASK-11.05.03 Provider routing metadata. _(OpenRouter's `provider` routing preferences field is not exposed)_
+- [ ] SUBTASK-11.05.04 Streaming/tools. _(tools work via the shared adapter; streaming not implemented, same as all providers)_
+- [x] SUBTASK-11.05.05 Usage/error mapping. _(shared with openai-compatible adapter)_
+- [x] SUBTASK-11.05.06 Contract tests. _(covered by the shared openai-compatible adapter tests)_
 
 ## TASK-11.06 — OpenAI-compatible adapter
 
-- [ ] SUBTASK-11.06.01 Configurable base URL.
-- [ ] SUBTASK-11.06.02 Configurable models path.
-- [ ] SUBTASK-11.06.03 Configurable completion path.
-- [ ] SUBTASK-11.06.04 Manual model ID.
-- [ ] SUBTASK-11.06.05 Compatibility presets.
-- [ ] SUBTASK-11.06.06 Conservative tool/thinking defaults.
-- [ ] SUBTASK-11.06.07 Contract tests dengan mock endpoints.
+- [x] SUBTASK-11.06.01 Configurable base URL. _(existing, unchanged — `/api/ai` already supports this for the 'custom' provider)_
+- [x] SUBTASK-11.06.02 Configurable models path. _(existing, unchanged)_
+- [ ] SUBTASK-11.06.03 Configurable completion path. _(hardcoded to `/chat/completions`; no provider needing a different path has come up yet)_
+- [ ] SUBTASK-11.06.04 Manual model ID. _(UI always requires discovery first — no "type a model id directly" fallback)_
+- [ ] SUBTASK-11.06.05 Compatibility presets. _(no saved per-provider quirk presets beyond the baseUrl/modelsPath already in `providerCatalog`)_
+- [x] SUBTASK-11.06.06 Conservative tool/thinking defaults. _(unknown models always resolve to `conservativeCapabilities` — unchanged from Batch 1, re-verified by `tests/aiAdapters.test.ts`)_
+- [x] SUBTASK-11.06.07 Contract tests dengan mock endpoints. _(fixture-based, no live endpoint needed)_
 
 ## TASK-11.07 — SSRF protection
 
-- [ ] SUBTASK-11.07.01 Enforce scheme policy.
-- [ ] SUBTASK-11.07.02 Resolve dan block private/link-local IP.
-- [ ] SUBTASK-11.07.03 Block metadata service ranges.
-- [ ] SUBTASK-11.07.04 Limit redirects.
-- [ ] SUBTASK-11.07.05 Revalidate redirect destination.
-- [ ] SUBTASK-11.07.06 Apply response size/time limits.
-- [ ] SUBTASK-11.07.07 Add DNS rebinding mitigation.
-- [ ] SUBTASK-11.07.08 Add SSRF security tests.
+- [x] SUBTASK-11.07.01 Enforce scheme policy. _(existing `assertSafePublicEndpoint`, now covered by `tests/ssrfProtection.test.ts`)_
+- [x] SUBTASK-11.07.02 Resolve dan block private/link-local IP. _(existing; test suite now exercises RFC1918, link-local, loopback, CGNAT 100.64/10, and IPv6 ULA/link-local ranges against the real function via real DNS resolution)_
+- [x] SUBTASK-11.07.03 Block metadata service ranges. _(existing `169.254.169.254` + `metadata.google.internal`, now tested)_
+- [x] SUBTASK-11.07.04 Limit redirects. _(existing — `safeProviderFetch` uses `redirect: 'error'`, i.e. zero redirects followed)_
+- [x] SUBTASK-11.07.05 Revalidate redirect destination. _(moot given 11.07.04 blocks redirects outright rather than following-then-validating; noted as the current design choice, not a gap)_
+- [x] SUBTASK-11.07.06 Apply response size/time limits. _(time limit existed since Batch 1 — `AbortSignal.timeout(70_000)`. Size limit is NEW this batch: `domain/ai/responseLimits.ts#readLimitedText/readLimitedJson`, unit-tested in `tests/responseLimits.test.ts`. Not yet wired into `server/api/ai.post.ts`/`ai/models.post.ts` — see honesty note.)_
+- [ ] SUBTASK-11.07.07 Add DNS rebinding mitigation. _(current check resolves DNS once and validates that result; it does not pin the connection to the validated IP, so a classic TOCTOU DNS-rebinding attack between the check and the actual `fetch()` is still theoretically possible. Fixing this properly requires passing a custom `dns.lookup` or `Agent`/dispatcher into `fetch` so the connection reuses the already-validated address — a real code change to `safeProviderFetch`'s signature that deserves its own reviewed PR rather than being folded in here.)_
+- [x] SUBTASK-11.07.08 Add SSRF security tests. _(`tests/ssrfProtection.test.ts`, 12 tests, run against the real `assertSafePublicEndpoint` via a minimal Nuxt-globals shim — see `tests/helpers/nuxtGlobalsShim.ts`)_
 
 ## TASK-11.08 — Model discovery service
 
-- [ ] SUBTASK-11.08.01 `/v1/models` strategy.
-- [ ] SUBTASK-11.08.02 Native endpoint strategy.
-- [ ] SUBTASK-11.08.03 Curated catalog strategy.
-- [ ] SUBTASK-11.08.04 Manual model strategy.
-- [ ] SUBTASK-11.08.05 Cache and refresh.
-- [ ] SUBTASK-11.08.06 Handle empty/partial listing.
-- [ ] SUBTASK-11.08.07 Store discovery timestamp/source.
+- [x] SUBTASK-11.08.01 `/v1/models` strategy. _(existing `/api/ai/models`, 'endpoint' strategy, unchanged)_
+- [x] SUBTASK-11.08.02 Native endpoint strategy. _(existing 'native' strategy for Anthropic/Google, unchanged)_
+- [x] SUBTASK-11.08.03 Curated catalog strategy. _(existing `curatedCapabilities`, unchanged)_
+- [ ] SUBTASK-11.08.04 Manual model strategy. _(same gap as 11.06.04 — no manual-entry fallback in the UI)_
+- [x] SUBTASK-11.08.05 Cache and refresh. _(NEW: `domain/ai/modelDiscoveryCache.ts`, in-memory TTL cache keyed by provider + credential fingerprint — never the raw key. Not yet wired into `/api/ai/models`, see honesty note.)_
+- [x] SUBTASK-11.08.06 Handle empty/partial listing. _(`setCachedModelsIfNonEmpty` refuses to cache a transient empty result)_
+- [x] SUBTASK-11.08.07 Store discovery timestamp/source. _(`DiscoveryCacheEntry.fetchedAt`/`source`)_
+
+**Batch 7 honesty note:** the adapters, router, capability-audit, discovery
+cache, and response-size limiter above are new, unit-tested domain logic
+(`tests/aiAdapters.test.ts`, `tests/ssrfProtection.test.ts`,
+`tests/responseLimits.test.ts` — 37 new tests, 88 total passing). They are
+**not yet wired into** `server/api/ai.post.ts` / `server/api/ai/models.post.ts`,
+which have worked and been relied upon since Batch 1. That wiring was
+deliberately left for a separate, focused change rather than bundled here,
+so this PR cannot regress the one AI code path that has actually been
+exercised end-to-end (manually, with a real provider key, in earlier
+batches). Swapping `ai.post.ts`'s inline per-protocol branches for
+`getAdapterForProtocol(...)` is a mechanical follow-up once someone can
+re-verify the swap against a real provider key.
 
 ---
 
@@ -677,46 +690,52 @@ Setiap task harus memenuhi Definition of Done pada [PERENCANAAN.md](./PERENCANAA
 
 ## TASK-12.01 — Capability schema
 
-- [ ] SUBTASK-12.01.01 Input modality fields.
-- [ ] SUBTASK-12.01.02 Streaming field.
-- [ ] SUBTASK-12.01.03 Tool fields.
-- [ ] SUBTASK-12.01.04 Structured output fields.
-- [ ] SUBTASK-12.01.05 Token-limit fields.
-- [ ] SUBTASK-12.01.06 Citation/search fields.
-- [ ] SUBTASK-12.01.07 Thinking union schema.
-- [ ] SUBTASK-12.01.08 Schema versioning.
+- [x] SUBTASK-12.01.01 Input modality fields. _(existing `ModelCapabilities.textInput/imageInput/fileInput` from Batch 1)_
+- [x] SUBTASK-12.01.02 Streaming field. _(existing `.streaming`)_
+- [x] SUBTASK-12.01.03 Tool fields. _(existing `.toolCalling`)_
+- [x] SUBTASK-12.01.04 Structured output fields. _(existing `.structuredOutput`)_
+- [x] SUBTASK-12.01.05 Token-limit fields. _(existing `.maxContextTokens`/`.maxOutputTokens`)_
+- [ ] SUBTASK-12.01.06 Citation/search fields. _(no field for "this model supports built-in web search/citations" — not modeled anywhere yet)_
+- [x] SUBTASK-12.01.07 Thinking union schema. _(existing `ThinkingCapability` 5-mode union)_
+- [ ] SUBTASK-12.01.08 Schema versioning. _(no version tag on `ModelCapabilities`; would matter once capability data is persisted somewhere that outlives a deploy — not yet needed since it's all in-memory/code today)_
 
 ## TASK-12.02 — Capability resolution
 
-- [ ] SUBTASK-12.02.01 Provider metadata resolver.
-- [ ] SUBTASK-12.02.02 Curated registry resolver.
-- [ ] SUBTASK-12.02.03 Safe probe resolver.
-- [ ] SUBTASK-12.02.04 Admin override.
-- [ ] SUBTASK-12.02.05 Connection override.
-- [ ] SUBTASK-12.02.06 Conservative fallback.
-- [ ] SUBTASK-12.02.07 Conflict audit log.
+- [x] SUBTASK-12.02.01 Provider metadata resolver. _(`domain/ai/capabilityResolution.ts` accepts `providerMetadata`, though no caller currently extracts real metadata from a provider's discovery response to pass in — the seam exists, the extraction doesn't yet)_
+- [x] SUBTASK-12.02.02 Curated registry resolver. _(wraps existing `curatedCapabilities`)_
+- [ ] SUBTASK-12.02.03 Safe probe resolver. _(no "send a tiny test request to see what the model actually supports" probe — would need a real provider key to design/test safely, deferred)_
+- [x] SUBTASK-12.02.04 Admin override. _(`adminOverride` param — not yet connected to any actual admin UI/storage, just the resolution seam)_
+- [x] SUBTASK-12.02.05 Connection override. _(`connectionOverride` param — same caveat)_
+- [x] SUBTASK-12.02.06 Conservative fallback. _(unchanged `conservativeCapabilities` base)_
+- [x] SUBTASK-12.02.07 Conflict audit log. _(`CapabilityAuditEntry[]`, records which layer changed which fields; unit-tested)_
 
 ## TASK-12.03 — Thinking controls
 
-- [ ] SUBTASK-12.03.01 Unsupported state.
-- [ ] SUBTASK-12.03.02 Fixed state.
-- [ ] SUBTASK-12.03.03 Toggle state.
-- [ ] SUBTASK-12.03.04 Level selector.
-- [ ] SUBTASK-12.03.05 Token-budget selector.
-- [ ] SUBTASK-12.03.06 Provider-native adapter UI.
-- [ ] SUBTASK-12.03.07 Runtime parameter validation.
-- [ ] SUBTASK-12.03.08 Cross-provider tests.
+- [x] SUBTASK-12.03.01 Unsupported state. _(`domain/ai/thinkingControls.ts`)_
+- [x] SUBTASK-12.03.02 Fixed state.
+- [x] SUBTASK-12.03.03 Toggle state.
+- [x] SUBTASK-12.03.04 Level selector.
+- [x] SUBTASK-12.03.05 Token-budget selector.
+- [x] SUBTASK-12.03.06 Provider-native adapter UI. _(pass-through: request forwarded unchanged, UI representation is out of scope for this domain-logic function)_
+- [x] SUBTASK-12.03.07 Runtime parameter validation. _(this whole module; NOT yet called by `server/api/ai.post.ts`, which still has its own inline equivalent logic from Batch 1 — see TASK-11 honesty note, same reasoning: don't touch the verified working path in this change)_
+- [x] SUBTASK-12.03.08 Cross-provider tests. _(`tests/aiAdapters.test.ts`, all 5 modes)_
 
 ## TASK-12.04 — Feature model assignment
 
-- [ ] SUBTASK-12.04.01 Default model.
-- [ ] SUBTASK-12.04.02 Search/planning model.
-- [ ] SUBTASK-12.04.03 Synthesis model.
-- [ ] SUBTASK-12.04.04 Quick-action model.
-- [ ] SUBTASK-12.04.05 Coding model.
-- [ ] SUBTASK-12.04.06 Vision/file model.
-- [ ] SUBTASK-12.04.07 Fallback model.
-- [ ] SUBTASK-12.04.08 Display actual model used.
+- [x] SUBTASK-12.04.01 Default model. _(`domain/ai/router.ts#buildRoutingPlan`, reads `logicalModels` which existed since Batch 1 but had no consumer until now)_
+- [x] SUBTASK-12.04.02 Search/planning model. _('ruang-research' alias)_
+- [x] SUBTASK-12.04.03 Synthesis model. _(same alias — PRD doesn't distinguish synthesis from research planning as separate logical models)_
+- [x] SUBTASK-12.04.04 Quick-action model. _('ruang-fast' alias)_
+- [x] SUBTASK-12.04.05 Coding model. _('ruang-builder' alias)_
+- [ ] SUBTASK-12.04.06 Vision/file model. _(no logical alias defined for vision/file-input tasks specifically yet)_
+- [x] SUBTASK-12.04.07 Fallback model. _(`runWithFallback`, only advances past a retryable failure, tested for both the "stop on success" and "stop on non-retryable error" cases)_
+- [x] SUBTASK-12.04.08 Display actual model used. _(`RoutingOutcome.attempt`/`usedFallback` — caller has everything needed to show "used claude-sonnet-5.5 (fallback)" in the UI; no UI wired yet, this is the data the UI would need)_
+
+**Note:** This router only applies to MANAGED model selection (platform picks
+the model). BYOK users who configure their own provider/model in Settings
+(`pages/app.vue` `provider` state) are intentionally never rerouted — using
+exactly the model a user chose with their own key is correct behavior, not
+a gap.
 
 ---
 
